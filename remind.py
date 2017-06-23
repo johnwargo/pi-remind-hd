@@ -1,18 +1,19 @@
 #!/usr/bin/python
 '''*****************************************************************************************************************
-    Pi Remind
+    Pi Remind HD
     By John M. Wargo
     www.johnwargo.com
 
     This application connects to a Google Calendar and determines whether there are any appointments in the next
     few minutes and flashes some LEDs if there are. The project uses a Raspberry Pi 2 device with a Pimoroni
-    Unicorn HAT (an 8x8 matrix of bright, multi-colored LEDs) to display an obnoxious reminder every minute, changing
+    Unicorn HAT HD (a 16x16 matrix of bright, multi-colored LEDs) to display an obnoxious reminder every minute, changing
     color at 10 minutes (WHITE), 5 minutes (YELLOW) and 2 minutes (multi-color swirl).
 
     Google Calendar example code: https://developers.google.com/google-apps/calendar/quickstart/python
     Unicorn HAT example code: https://github.com/pimoroni/unicorn-hat/tree/master/python/examples
 ********************************************************************************************************************'''
 # todo: Add configurable option for ignoring tentative appointments
+# todo: Store number of LEDs in a row as a parameter and adjust routines accordingly.
 
 from __future__ import print_function
 
@@ -100,8 +101,8 @@ def do_swirl(duration):
     # modified from: https://github.com/pimoroni/unicorn-hat/blob/master/python/examples/demo.py
     step = 0
     for i in range(duration):
-        for y in range(8):
-            for x in range(8):
+        for y in range(16):
+            for x in range(16):
                 r, g, b = swirl(x, y, step)
                 r = int(max(0, min(255, r)))
                 g = int(max(0, min(255, g)))
