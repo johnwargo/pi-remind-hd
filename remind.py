@@ -1,16 +1,15 @@
 #!/usr/bin/python
 '''*****************************************************************************************************************
-    Pi Remind HD
+    Pi Remind (HD)
     By John M. Wargo
     www.johnwargo.com
 
     This application connects to a Google Calendar and determines whether there are any appointments in the next
     few minutes and flashes some LEDs if there are. The project uses a Raspberry Pi 2 device with a Pimoroni
-    Unicorn HAT HD (a 16x16 matrix of bright, multi-colored LEDs) to display an obnoxious reminder every minute, changing
-    color at 10 minutes (WHITE), 5 minutes (YELLOW) and 2 minutes (multi-color swirl).
+    Unicorn HAT HD (a 16x16 matrix of bright, multi-colored LEDs) to display an obnoxious reminder every minute,
+    changing color at 10 minutes (WHITE), 5 minutes (YELLOW) and 2 minutes (multi-color swirl).
 
     Google Calendar example code: https://developers.google.com/google-apps/calendar/quickstart/python
-    Unicorn HAT example code: https://github.com/pimoroni/unicorn-hat/tree/master/python/examples
 ********************************************************************************************************************'''
 # todo: Add configurable option for ignoring tentative appointments
 # todo: Store number of LEDs in a row as a parameter and adjust routines accordingly.
@@ -76,65 +75,57 @@ has_error = False
 
 
 def swirl(x, y, step):
-    # modified from: https://github.com/pimoroni/unicorn-hat/blob/master/python/examples/demo.py
-    x -= 4
-    y -= 4
-
+    # modified from: https://github.com/pimoroni/unicorn-hat-hd/blob/master/examples/demo.py
+    x -= (u_width / 2)
+    y -= (u_height / 2)
     dist = math.sqrt(pow(x, 2) + pow(y, 2)) / 2.0
     angle = (step / 10.0) + (dist * 1.5)
     s = math.sin(angle)
     c = math.cos(angle)
-
     xs = x * c - y * s
     ys = x * s + y * c
-
     r = abs(xs + ys)
-    # r = r * 64.0
-    r *= 64.0
+    r = r * 12.0
     r -= 20
-
     return r, r + (s * 130), r + (c * 130)
 
 
 def do_swirl(duration):
-    # modified from: https://github.com/pimoroni/unicorn-hat/blob/master/python/examples/demo.py
+    # modified from: https://github.com/pimoroni/unicorn-hat-hd/blob/master/examples/demo.py
     step = 0
     for i in range(duration):
-        for y in range(16):
-            for x in range(16):
+        for y in range(u_height):
+            for x in range(u_width):
                 r, g, b = swirl(x, y, step)
                 r = int(max(0, min(255, r)))
                 g = int(max(0, min(255, g)))
                 b = int(max(0, min(255, b)))
-                lights.set_pixel(x, y, r, g, b)
-        step += 1
-        lights.show()
+                unicornhathd.set_pixel(x, y, r, g, b)
+        step += 2
+        unicornhathd.show()
         time.sleep(0.01)
     # turn off all lights when you're done
-    lights.off()
+    unicornhathd.off()
 
 
 def set_activity_light(color, increment):
     # used to turn on one LED at a time across the bottom row of lights. The app uses this as an unobtrusive
     # indicator when it connects to Google to check the calendar. Its intended as a subtle reminder that things
     # are still working.
-    # On 06/27/2016 changed the code so it leaves the light on (in a different color) so you can tell that the
-    # Pi is still running the code. So, it shows GREEN when connecting to Google, then switches to BLUE when
-    # its done.
     global current_activity_light
     # turn off (clear) any lights that are on
-    lights.off()
+    unicornhathd.off()
     if increment:
         # OK. Which light will we be illuminating?
         if current_activity_light < 1:
             # start over at the beginning when you're at the end of the row
-            current_activity_light = 8
+            current_activity_light = u_width
         # increment the current light (to the next one)
         current_activity_light -= 1
     # set the pixel color
-    lights.set_pixel(current_activity_light, 0, color[0], color[1], color[2])
+    unicornhathd.set_pixel(current_activity_light, 15, *color)
     # show the pixel
-    lights.show()
+    unicornhathd.show()
 
 
 def set_all(color):
@@ -357,11 +348,15 @@ print(HASHES)
 unicornhathd.clear()
 # Initialize  all LEDs to black
 unicornhathd.set_all(0, 0, 0)
+# set the display orientation to zero degrees
+unicornhathd.rotation(90)
+# set u_width and u_height with the appropriate parameters for the HAT
+u_width, u_height = unicornhathd.get_shape()
 
 # The app flashes a GREEN light in the first row every time it connects to Google to check the calendar.
 # The LED increments every time until it gets to the other side then starts over at the beginning again.
 # The current_activity_light variable keeps track of which light lit last. At start it's at -1 and goes from there.
-current_activity_light = 16
+current_activity_light = u_width
 
 # Set a specific brightness level for the Pimoroni Unicorn HAT, otherwise it's pretty bright.
 # Comment out the line below to see what the default looks like.
@@ -370,7 +365,7 @@ current_activity_light = 16
 # flash some random LEDs just for fun...
 flash_random(5, 0.5)
 # blink all the LEDs GREEN to let the user know the hardware is working
-flash_all(1, 1, GREEN)
+flash_all(2, 1, GREEN)
 
 try:
     # Initialize the Google Calendar API stuff
