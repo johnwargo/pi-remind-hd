@@ -64,7 +64,9 @@ When the Pi is all ready to go, open a terminal window and update the device's s
 	sudo apt-get update
 	sudo apt-get upgrade
 
-The first command updates the local software repositories and the second command updates the Pi OS and associated files. 
+The first command updates the local software repositories and the second command updates the Pi OS and associated files.
+ 
+Enable SP1 on the pi. Open the Pi menu (upper-left corner of the screen), select  
 
 Install the [Google Calendar API Python files](https://developers.google.com/api-client-library/python/start/installation) along with date handling libraries using the following command:
 
