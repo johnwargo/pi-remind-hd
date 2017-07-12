@@ -2,7 +2,7 @@
 
 I often find myself missing appointments because I'm engrossed in my work or because I've switched to a different computer and can't hear the reminder ping on my work laptop. I created this project to give me a visual reminder, an obnoxious, silent countdown timer I can set on my desk to flash lights at me as a warning before my next meeting starts.
 
-The project uses a network connected Raspberry Pi and a [Pimoroni Unicorn HAT HD](https://shop.pimoroni.com/products/unicorn-hat-hd) to display the reminder. The project was originally published in Make Magazine (makezine.com): [Get a Flashing Meeting Reminder with a Raspberry Pi](http://makezine.com/projects/get-a-flashing-meeting-reminder-with-a-raspberry-pi/). For this edition of the project, I upgraded the Unicorn HAT to the High Definition (HD) version which will allow me to display much cleaner and more interesting color patterns. The HD version of the Unicorn HAT delivers 256 LEDs vs the original Unicorn HAT's 64 LEDs.  
+The project uses a network connected Raspberry Pi and a [Pimoroni Unicorn HAT HD](https://shop.pimoroni.com/products/unicorn-hat-hd) to display the reminder. The project was originally build using the Pimoroni Unicorn HAT and published in Make Magazine (makezine.com): [Get a Flashing Meeting Reminder with a Raspberry Pi](http://makezine.com/projects/get-a-flashing-meeting-reminder-with-a-raspberry-pi/). For this version, I upgraded the Unicorn HAT to the High Definition (HD) version which will allow me to display much cleaner and more interesting color patterns. The HD version of the Unicorn HAT delivers 256 LEDs vs the original Unicorn HAT's 64 LEDs.
 
 ## Alerts
 
@@ -12,7 +12,7 @@ The Pi will connect to Google Calendar and check every minute for upcoming appoi
 * Yellow @ 5 minutes until 2 minutes
 * Multi-color swirl @ 2 minutes
 
-If you're feeling adventurous, you can change the code to use any of the sample patterns included with the [Unicorn HAT Sample Code](https://github.com/pimoroni/unicorn-hat/tree/master/python/examples).
+If you're feeling adventurous, you can change the code to use any of the sample patterns included with the [Unicorn HAT HD Sample Code](https://github.com/pimoroni/unicorn-hat-hd/tree/master/examples).
 
 ## Indicator LED
 
@@ -32,30 +32,39 @@ This way, even if you miss the flashing lights, you can glance at the display an
 For this project, I used the following components:
 
 + [Raspberry Pi 3](https://www.raspberrypi.org/), but most any Pi will work. Check the Unicorn HAT documentation for supported Pi devices.
-+ [CanaKit 5V 2.5A Raspberry Pi 3 Power Supply / Adapter / Charger (UL Listed)](http://www.amazon.com/CanaKit-Raspberry-Supply-Adapter-Charger/dp/B00MARDJZ4) from Amazon
 + [Pimoroni Unicorn HAT HD](https://shop.pimoroni.com/products/unicorn-hat-hd)
 + [Adafruit Raspberry Pi B+ / Pi 2 / Pi 3 Case - Smoke Base - w/ Clear Top](https://www.adafruit.com/products/2258)
-
-The only required component is the Unicorn HAT as the code in this project is hand crafted for that device. Otherwise, pick whatever Raspberry Pi device, case and power supply that works best for you.
++ [CanaKit 5V 2.5A Raspberry Pi 3 Power Supply / Adapter / Charger (UL Listed)](http://www.amazon.com/CanaKit-Raspberry-Supply-Adapter-Charger/dp/B00MARDJZ4) from Amazon
 
 ## Google Calendar API Setup
 
-Before you can use the project's software, you have to setup an account with Google so the app can consume the Google Calendar APIs used in this project. To setup your account, read the [Google Calendar API Python Quickstart](https://developers.google.com/google-apps/calendar/quickstart/python).
+Before you can use the project's software, you must setup an account with Google so the app can consume the Google Calendar APIs used in this project. To setup your account, read the [Google Calendar API Python Quickstart](https://developers.google.com/google-apps/calendar/quickstart/python).
 
 Download your Google Calendar API application's `client_secret.json` file in the project folder. Be sure to name the downloaded file using that file name. You'll need it to authorize the app to access your Google Calendar and that file name is hard coded into the Python app.
 
 ## Raspberry Pi Setup
 
+We'll start by connecting all the hardware, then move on to the software setup.
 
 ### Hardware
 
 To setup the hardware, complete the following steps:
 
-1. Mount the Pimoroni Unicorn HAT on the Raspberry Pi device
+1. Mount the Pimoroni Unicorn HAT HD on the Raspberry Pi device using the included hardware
 2. Place the Pi in a case
 3. Power it up!
 
-That's it, you're done. That was easy! 
+That's it, you're done. That was easy! When you're done, the Pi will look something like the following:
+
+![Raspberry Pi Configuration Hardware Assembly](screenshots/figure-01.png)
+
+When the Pi boots up, log into the Pi using the default credentials (`pi`/`raspberry`). Next, you must change the Pi's hardware configuration so it can talk to the Unicorn HAT HD using the SPI protocol. 
+
+Open the Pi menu (located in the upper-left corner of the screen), select **Preferences**, then **Raspberry Pi Configuration**. In the application window that opens, select the **Interfaces** tab, then enable the **SPI** option as shown in the following figure:
+
+![Raspberry Pi Configuration Utility](screenshots/figure-02.png)
+
+Click the **OK** button to save your changes.  You should **not** have to reboot your Pi after completing this step. 
 
 ### Software
 
@@ -64,11 +73,9 @@ When the Pi is all ready to go, open a terminal window and update the device's s
 	sudo apt-get update
 	sudo apt-get upgrade
 
-The first command updates the local software repositories and the second command updates the Pi OS and associated files.
- 
-Enable SP1 on the pi. Open the Pi menu (upper-left corner of the screen), select  
+The first command updates the local software repositories and the second command updates the Pi's Raspbian OS and associated files.
 
-Install the [Google Calendar API Python files](https://developers.google.com/api-client-library/python/start/installation) along with date handling libraries using the following command:
+Next, install the [Google Calendar API Python files](https://developers.google.com/api-client-library/python/start/installation) along with date handling libraries using the following command:
 
     sudo pip install --upgrade google-api-python-client python-dateutil pytz
 

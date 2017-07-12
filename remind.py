@@ -17,7 +17,6 @@
 
 from __future__ import print_function
 
-import colorsys
 import datetime
 import math
 import os
@@ -25,10 +24,9 @@ import sys
 import time
 
 import httplib2
-import numpy as np
 import oauth2client
 import pytz
-import unicornhat as lights
+import unicornhathd
 from apiclient import discovery
 from dateutil import parser
 from oauth2client import client
@@ -62,6 +60,7 @@ BLUE = (0, 0, 255)
 ORANGE = (255, 153, 0)
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
+BLACK = (0, 0, 0)
 
 # constants used in the app to display status
 CHECKING_COLOR = BLUE
@@ -139,44 +138,41 @@ def set_activity_light(color, increment):
 
 
 def set_all(color):
-    # light all of the LEDs in a RGB single color.
-    for y in range(8):
-        for x in range(8):
-            lights.set_pixel(x, y, color[0], color[1], color[2])
-    lights.show()
+    unicornhathd.set_all(*color)
+    unicornhathd.show()
 
 
 def flash_all(flash_count, delay, color):
     # light all of the LEDs in a RGB single color. Repeat 'flash_count' times
     # keep illuminated for 'delay' value
     for index in range(flash_count):
-        for y in range(8):
-            for x in range(8):
-                lights.set_pixel(x, y, color[0], color[1], color[2])
-        lights.show()
+        # fill the light buffer with the specified color
+        unicornhathd.set_all(*color)
+        # show the color
+        unicornhathd.show()
+        # wait a bit
         time.sleep(delay)
-        lights.off()
+        # turn everything off
+        unicornhathd.off()
+        # wait a bit more
         time.sleep(delay)
 
 
-def flash_random(flash_count, delay):
-    # Copied from https://github.com/pimoroni/unicorn-hat/blob/master/python/examples/random_blinky.py
+def flash_random(flash_count, delay, between_delay=0):
+    # Copied from https://github.com/pimoroni/unicorn-hat-hd/blob/master/examples/test.py
     for index in range(flash_count):
-        rand_mat = np.random.rand(8, 8)
-        for y in range(8):
-            for x in range(8):
-                h = 0.1 * rand_mat[x, y]
-                s = 0.8
-                v = rand_mat[x, y]
-                rgb = colorsys.hsv_to_rgb(h, s, v)
-                r = int(rgb[0] * 255.0)
-                g = int(rgb[1] * 255.0)
-                b = int(rgb[2] * 255.0)
-                lights.set_pixel(x, y, r, g, b)
-        lights.show()
+        # fill the light buffer with random colors
+        unicornhathd._buf = unicornhathd.numpy.random.randint(low=0, high=255, size=(16, 16, 3))
+        # show the colors
+        unicornhathd.show()
+        # wait a bit
         time.sleep(delay)
-        lights.off()
-        time.sleep(delay)
+        # turn everything off
+        unicornhathd.off()
+        # do we have a between_delay value??
+        if between_delay > 0:
+            # wait a bit more
+            time.sleep(between_delay)
 
 
 def get_credentials():
@@ -353,21 +349,26 @@ def main():
 # now tell the user what we're doing...
 print('\n')
 print(HASHES)
-print(HASH, 'Pi Remind                           ', HASH)
+print(HASH, 'Pi Remind (HD)                      ', HASH)
 print(HASH, 'By John M. Wargo (www.johnwargo.com)', HASH)
 print(HASHES)
+
+# Clear the display (just in case)
+unicornhathd.clear()
+# Initialize  all LEDs to black
+unicornhathd.set_all(0, 0, 0)
 
 # The app flashes a GREEN light in the first row every time it connects to Google to check the calendar.
 # The LED increments every time until it gets to the other side then starts over at the beginning again.
 # The current_activity_light variable keeps track of which light lit last. At start it's at -1 and goes from there.
-current_activity_light = 8
+current_activity_light = 16
 
 # Set a specific brightness level for the Pimoroni Unicorn HAT, otherwise it's pretty bright.
 # Comment out the line below to see what the default looks like.
-lights.brightness(0.75)
+# lights.brightness(0.2)
 
 # flash some random LEDs just for fun...
-flash_random(5, 0.1)
+flash_random(5, 0.5)
 # blink all the LEDs GREEN to let the user know the hardware is working
 flash_all(1, 1, GREEN)
 
