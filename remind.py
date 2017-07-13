@@ -450,5 +450,7 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
+        # turn off all of the LEDs
+        unicornhathd.off()
         print('\nExiting application\n')
         sys.exit(0)
