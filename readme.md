@@ -85,8 +85,8 @@ Install the Unicorn HAT libraries following the instructions on the [Pimoroni we
 
 Next, download the project's code; in the same terminal window, execute the following commands:
 
-	git clone https://github.com/johnwargo/Pi-Remind-HD
-	cd pi_remind
+	git clone https://github.com/johnwargo/pi-remind-hd
+	cd pi-remind-hd
 	ls
 
 If all goes well, you should see the following files in the folder:
@@ -96,7 +96,7 @@ If all goes well, you should see the following files in the folder:
 - `remind.py`
 - `start-remind.sh`
 
-Copy your personal `client_secret.json` file (downloaded when you created your Google account) to the `pi_remind` folder you just created. With everything in place, execute the reminder app using the following command:
+Copy your personal `client_secret.json` file (downloaded when you created your Google account) to the `pi-remind-hd` folder you just created. With everything in place, execute the reminder app using the following command:
 
     sudo python ./remind.py
 
@@ -110,7 +110,7 @@ There are a few steps you must complete to configure the Raspberry Pi so it exec
 
 ***Note:** Don't forget to authorize the Google Calendar API to access your Google Calendar by running the manual startup process described in the previous session before enabling autostart.* 
 
-If you don't already have a terminal window open, open one, then navigate to the folder where you extracted the project files (if you followed my earlier instructions, you should have the files in `/home/pi/pi_remind/`). Make the project's bash script files executable by executing the following command:
+If you don't already have a terminal window open, open one, then navigate to the folder where you extracted the project files (if you followed my earlier instructions, you should have the files in `/home/pi/pi-remind-hd/`). Make the project's bash script files executable by executing the following command:
 
     chmod +x start-remind.sh
     
@@ -120,7 +120,7 @@ Next, you'll need to open the pi user's session autostart file using the followi
 
 Add the following lines to the end (bottom) of the file:
 
-	@lxterminal -e /home/pi/pi_remind/start-remind.sh
+	@lxterminal -e /home/pi/pi-remind-hd/start-remind.sh
 
 To save your changes, press `ctrl-o` then press the Enter key. Next, press `ctrl-x` to exit the `nano` application.
   
