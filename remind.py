@@ -13,6 +13,7 @@
 ********************************************************************************************************************'''
 # todo: Add configurable option for ignoring tentative appointments
 # todo: Store number of LEDs in a row as a parameter and adjust routines accordingly.
+# todo: display meeting subject
 
 from __future__ import print_function
 
@@ -109,6 +110,7 @@ def do_swirl(duration):
 
 
 def set_activity_light(color, increment):
+    global indicator_row
     # used to turn on one LED at a time across the bottom row of lights. The app uses this as an unobtrusive
     # indicator when it connects to Google to check the calendar. Its intended as a subtle reminder that things
     # are still working.
@@ -123,7 +125,7 @@ def set_activity_light(color, increment):
         # increment the current light (to the next one)
         current_activity_light -= 1
     # set the pixel color
-    unicornhathd.set_pixel(current_activity_light, 15, *color)
+    unicornhathd.set_pixel(current_activity_light, indicator_row, *color)
     # show the pixel
     unicornhathd.show()
 
@@ -352,6 +354,8 @@ unicornhathd.set_all(0, 0, 0)
 unicornhathd.rotation(90)
 # set u_width and u_height with the appropriate parameters for the HAT
 u_width, u_height = unicornhathd.get_shape()
+# calculate where we want to put the indicator light
+indicator_row = u_height - 1
 
 # The app flashes a GREEN light in the first row every time it connects to Google to check the calendar.
 # The LED increments every time until it gets to the other side then starts over at the beginning again.
