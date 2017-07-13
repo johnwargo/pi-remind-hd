@@ -39,6 +39,20 @@ try:
 except ImportError:
     flags = None
 
+# =============================================================================
+# Borrowed from: https://github.com/pimoroni/unicorn-hat-hd/blob/master/examples/text.py
+# =============================================================================
+try:
+    from PIL import Image, ImageDraw, ImageFont
+except ImportError:
+    exit("This script requires the pillow module\nInstall with: sudo pip install pillow")
+
+# Use `fc-list` to show a list of installed fonts on your system,
+# or `ls /usr/share/fonts/` and explore.
+
+FONT = ("/usr/share/fonts/truetype/freefont/FreeSansBold.ttf", 12)
+# =============================================================================
+
 # Google says: If modifying these scopes, delete your previously saved credentials at ~/.credentials/client_secret.json
 # On the pi, it's in /root/.credentials/
 SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
@@ -73,6 +87,47 @@ FAILURE_COLOR = RED
 # the app will leave the light red while checking. Setting it to green if
 # successful.
 has_error = False
+
+
+def display_text(message, color=WHITE):
+    global u_width
+
+    # do we have a message?
+    if len(message) > 0:
+        # then display it
+        # code borrowed from: https://github.com/pimoroni/unicorn-hat-hd/blob/master/examples/text.py
+        text_x = u_width
+        text_y = 2
+
+        font_file, font_size = FONT
+
+        font = ImageFont.truetype(font_file, font_size)
+
+        # =====================================================================
+        # I'm really not sure what all this code does...that's what happens when you 'borrow' code
+        # it basically sets up the width of the display string to include the string as well as enough
+        # space to scroll it off the screen
+        # =====================================================================
+        text_width, text_height = u_width, 0
+        w, h = font.getsize(message)
+        text_width += w + u_width
+        text_height = max(text_height, h)
+        text_width += u_width + text_x + 1
+        image = Image.new("RGB", (text_width, max(16, text_height)), (0, 0, 0))
+        draw = ImageDraw.Draw(image)
+        offset_left = 0
+        draw.text((text_x + offset_left, text_y), message, color, font=font)
+        offset_left += font.getsize(message)[0] + u_width
+        for scroll in range(text_width - u_width):
+            for x in range(u_width):
+                for y in range(u_height):
+                    pixel = image.getpixel((x + scroll, y))
+                    r, g, b = [int(n) for n in pixel]
+                    unicornhathd.set_pixel(u_width - 1 - x, y, r, g, b)
+            unicornhathd.show()
+            time.sleep(0.01)
+        unicornhathd.off()
+        # =====================================================================
 
 
 def swirl(x, y, step):
@@ -317,20 +372,27 @@ def main():
                 if num_minutes >= FIRST_THRESHOLD:
                     # Flash the lights in WHITE
                     flash_all(1, 0.25, WHITE)
+                    # display the event summary
+                    display_text(next_event['summary'], WHITE)
                     # set the activity light to WHITE as an indicator
                     set_activity_light(WHITE, False)
                 # is the appointment less than 5 minutes but more than 2 minutes from now?
                 elif num_minutes > SECOND_THRESHOLD:
                     # Flash the lights YELLOW
                     flash_all(2, 0.25, YELLOW)
+                    # display the event summary
+                    display_text(next_event['summary'], YELLOW)
                     # set the activity light to YELLOw as an indicator
                     set_activity_light(YELLOW, False)
                 # hmmm, less than 2 minutes, almost time to start!
                 else:
                     # swirl the lights. Longer every second closer to start time
-                    do_swirl(int((4 - num_minutes) * 100))
+                    do_swirl(int((4 - num_minutes) * 50))
+                    # display the event summary
+                    display_text(next_event['summary'], ORANGE)
                     # set the activity light to SUCCESS_COLOR (green by default)
                     set_activity_light(ORANGE, False)
+
         # wait a second then check again
         # You can always increase the sleep value below to check less often
         time.sleep(1)
@@ -364,12 +426,12 @@ current_activity_light = u_width
 
 # Set a specific brightness level for the Pimoroni Unicorn HAT, otherwise it's pretty bright.
 # Comment out the line below to see what the default looks like.
-# lights.brightness(0.2)
+unicornhathd.brightness(0.5)
 
 # flash some random LEDs just for fun...
 flash_random(5, 0.5)
 # blink all the LEDs GREEN to let the user know the hardware is working
-flash_all(2, 1, GREEN)
+flash_all(2, 0.25, GREEN)
 
 try:
     # Initialize the Google Calendar API stuff

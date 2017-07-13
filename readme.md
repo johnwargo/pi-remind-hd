@@ -4,6 +4,8 @@ I often find myself missing appointments because I'm engrossed in my work or bec
 
 The project uses a network connected Raspberry Pi and a [Pimoroni Unicorn HAT HD](https://shop.pimoroni.com/products/unicorn-hat-hd) to display the reminder. The project was originally build using the Pimoroni Unicorn HAT and published in Make Magazine (makezine.com): [Get a Flashing Meeting Reminder with a Raspberry Pi](http://makezine.com/projects/get-a-flashing-meeting-reminder-with-a-raspberry-pi/). For this version, I upgraded the Unicorn HAT to the High Definition (HD) version which will allow me to display much cleaner and more interesting color patterns. The HD version of the Unicorn HAT delivers 256 LEDs vs the original Unicorn HAT's 64 LEDs.
 
+One of the things I wanted to do in the original project was display the meeting description/subject on the Unicorn HAT. I could have done it, but because of the low pixel resolution of the Unicorn HAT, it would have looked clunky. The Unicorn HAT HD has a higher pixel resolution, so I've added the feature to this version. 
+
 ## Alerts
 
 The Pi will connect to Google Calendar and check every minute for upcoming appointments then flash the LEDs for following alerts:
@@ -77,7 +79,7 @@ The first command updates the local software repositories and the second command
 
 Next, install the [Google Calendar API Python files](https://developers.google.com/api-client-library/python/start/installation) along with date handling libraries using the following command:
 
-    sudo pip install --upgrade google-api-python-client python-dateutil pytz
+    sudo pip install --upgrade google-api-python-client python-dateutil pytz pillow
 
 Install the Unicorn HAT libraries following the instructions on the [Pimoroni web site](http://learn.pimoroni.com/tutorial/unicorn-hat/getting-started-with-unicorn-hat). Basically, open a terminal window and execute the following command:
 
