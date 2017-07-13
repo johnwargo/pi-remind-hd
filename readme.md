@@ -60,6 +60,8 @@ That's it, you're done. That was easy! When you're done, the Pi will look someth
 
 ![Raspberry Pi Configuration Hardware Assembly](screenshots/figure-01.png)
 
+**Note:** The Unicorn HAT HD has a smoked lens that hides the actual LED elements, so you can't really see the HAT in the case. It's a much cleaner, more professional look than my previous reminder projects.
+
 When the Pi boots up, log into the Pi using the default credentials (`pi`/`raspberry`). Next, you must change the Pi's hardware configuration so it can talk to the Unicorn HAT HD using the SPI protocol. Open the Pi menu (located in the upper-left corner of the screen), select **Preferences**, then **Raspberry Pi Configuration**. In the application that opens, select the **Interfaces** tab, then enable the **SPI** option as shown in the following figure:
 
 ![Raspberry Pi Configuration Utility](screenshots/figure-02.png)

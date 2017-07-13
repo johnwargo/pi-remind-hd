@@ -223,13 +223,17 @@ def flash_random(flash_count, delay, between_delay=0):
 
 
 def get_credentials():
-    # taken from https://developers.google.com/google-apps/calendar/quickstart/python
+    # 'borrowed' from https://developers.google.com/google-apps/calendar/quickstart/python
     global credentials
+    # get the user's home folder
     home_dir = os.path.expanduser('~')
+    # build the file path pointing to where we'll store the Google API credentials
     credential_dir = os.path.join(home_dir, '.credentials')
+    # create the directory path if it doesn't exist
     if not os.path.exists(credential_dir):
         print('Creating', credential_dir)
         os.makedirs(credential_dir)
+    # now create a file path for the Google API credentials file
     credential_path = os.path.join(credential_dir, 'pi_remind.json')
     store = oauth2client.file.Storage(credential_path)
     credentials = store.get()
@@ -343,7 +347,8 @@ def get_next_event(search_limit):
 def main():
     # initialize the lastMinute variable to the current time to start
     last_minute = datetime.datetime.now().minute
-    # on startup, just use the previous minute as lastMinute
+    # on startup, just use the previous minute as lastMinute, that way the app
+    # will check for appointments immediately on startup.
     if last_minute == 0:
         last_minute = 59
     else:
@@ -383,8 +388,8 @@ def main():
                     display_text(next_event['summary'], YELLOW)
                     # set the activity light to YELLOw as an indicator
                     set_activity_light(YELLOW, False)
-                # hmmm, less than 2 minutes, almost time to start!
                 else:
+                    # hmmm, less than 2 minutes, almost time to start!
                     # swirl the lights. Longer every second closer to start time
                     do_swirl(int((4 - num_minutes) * 50))
                     # display the event summary
@@ -395,9 +400,6 @@ def main():
         # wait a second then check again
         # You can always increase the sleep value below to check less often
         time.sleep(1)
-
-    # this should never happen since the above is an infinite loop
-    print('Leaving main()')
 
 
 # now tell the user what we're doing...
@@ -430,7 +432,7 @@ unicornhathd.brightness(0.5)
 # flash some random LEDs just for fun...
 flash_random(5, 0.5)
 # blink all the LEDs GREEN to let the user know the hardware is working
-flash_all(2, 0.25, GREEN)
+flash_all(3, 0.10, GREEN)
 
 try:
     # Initialize the Google Calendar API stuff
@@ -448,9 +450,12 @@ print('\nApplication initialized\n')
 # Now see what we're supposed to do next
 if __name__ == '__main__':
     try:
+        # do our stuff
         main()
     except KeyboardInterrupt:
         # turn off all of the LEDs
         unicornhathd.off()
+        # tell the user we're exiting
         print('\nExiting application\n')
+        # exit the application
         sys.exit(0)
