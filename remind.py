@@ -13,7 +13,6 @@
 ********************************************************************************************************************'''
 # todo: Add configurable option for ignoring tentative appointments
 # todo: Store number of LEDs in a row as a parameter and adjust routines accordingly.
-# todo: display meeting subject
 
 from __future__ import print_function
 
