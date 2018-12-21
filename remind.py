@@ -19,6 +19,7 @@ from __future__ import print_function
 import datetime
 import math
 import os
+import socket
 import sys
 import time
 
@@ -59,12 +60,19 @@ CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Pi Reminder'
 CALENDAR_ID = 'primary'
 HASH = '#'
-HASHES = '########################################'
+HASHES = '#############################################'
 
 # Reminder thresholds
 FIRST_THRESHOLD = 5  # minutes, WHITE lights before this
 # RED for anything less than (and including) the second threshold
 SECOND_THRESHOLD = 2  # minutes, YELLOW lights before this
+
+# Reboot Options - Added this to enable users to reboot the pi after a certain number of failed retries.
+# I noticed that on power loss, the Pi looses connection to the network and takes a reboot after the network
+# comes back to fix it.
+REBOOT_COUNTER_ENABLED = False
+REBOOT_NUM_RETRIES = 10
+reboot_counter = 0  # counter variable, tracks retry events.
 
 # COLORS
 RED = (255, 0, 0)
@@ -269,10 +277,11 @@ def has_reminder(event):
 
 def get_next_event(search_limit):
     global has_error
+    global reboot_counter
 
     # modified from https://developers.google.com/google-apps/calendar/quickstart/python
     # get all of the events on the calendar from now through 10 minutes from now
-    print(datetime.datetime.now(), 'Getting next event')
+    print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'Getting next event')
     # this 'now' is in a different format (UTC)
     now = datetime.datetime.utcnow()
     then = now + datetime.timedelta(minutes=search_limit)
@@ -296,6 +305,8 @@ def get_next_event(search_limit):
         event_list = events_result.get('items', [])
         # initialize this here, setting it to true later if we encounter an error
         has_error = False
+        # reset the reboot counter, since everything worked so far
+        reboot_counter = 0;
         # did we get a return value?
         if not event_list:
             # no? Then no upcoming events at all, so nothing to do right now
@@ -327,10 +338,11 @@ def get_next_event(search_limit):
                             # Round to the nearest minute and return with the object
                             event['num_minutes'] = time_delta.total_seconds() // 60
                             return event
-    except:
-        # well, something went wrong
+    except Exception as e:
+        # Something went wrong, tell the user (just in case they have a monitor on the Pi)
+        print('\nException type:', type(e))
         # not much else we can do here except to skip this attempt and try again later
-        print('Error connecting to calendar:', sys.exc_info()[0], '\n')
+        print('Error:', sys.exc_info()[0])
         # light up the array with FAILURE_COLOR LEDs to indicate a problem
         flash_all(1, 2, FAILURE_COLOR)
         # now set the current_activity_light to FAILURE_COLOR to indicate an error state
@@ -338,6 +350,18 @@ def get_next_event(search_limit):
         set_activity_light(FAILURE_COLOR, False)
         # we have an error, so make note of it
         has_error = True
+        # check to see if reboot is enabled
+        if REBOOT_COUNTER_ENABLED:
+            # increment the counter
+            reboot_counter += 1
+            print('Incrementing the reboot counter ({})'.format(reboot_counter))
+            # did we reach the reboot threshold?
+            if reboot_counter == REBOOT_NUM_RETRIES:
+                # Reboot the Pi
+                for i in range(1, 10):
+                    print('Rebooting in {} seconds'.format(i))
+                    time.sleep(1)
+                os.system("sudo reboot")
 
     # if we got this far and haven't returned anything, then there's no appointments in the specified time
     # range, or we had an error, so...
@@ -369,7 +393,7 @@ def main():
             if next_event is not None:
                 num_minutes = next_event['num_minutes']
                 if num_minutes != 1:
-                    print('Starts in', int(num_minutes), 'minutes\n')
+                    print('Starts in {} minutes\n'.format(num_minutes))
                 else:
                     print('Starts in 1.0 minute\n')
                 # is the appointment between 10 and 5 minutes from now?
@@ -405,9 +429,14 @@ def main():
 # now tell the user what we're doing...
 print('\n')
 print(HASHES)
-print(HASH, 'Pi Remind (HD)                      ', HASH)
-print(HASH, 'By John M. Wargo (www.johnwargo.com)', HASH)
+print(HASH, 'Pi Remind (HD)                           ', HASH)
+print(HASH, 'https://github.com/johnwargo/pi-remind-hd', HASH)
+print(HASH, 'By John M. Wargo (www.johnwargo.com)     ', HASH)
 print(HASHES)
+
+# output whether reboot mode is enabled
+if REBOOT_COUNTER_ENABLED:
+    print('Reboot enabled ({} retries)'.format(REBOOT_NUM_RETRIES))
 
 # Clear the display (just in case)
 unicornhathd.clear()
@@ -436,16 +465,23 @@ flash_all(3, 0.10, GREEN)
 
 try:
     # Initialize the Google Calendar API stuff
+    print('Initializing the Google Calendar API')
+    socket.setdefaulttimeout(10)  # 10 seconds
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('calendar', 'v3', http=http)
-except:
+except Exception as e:
+    print('\nException type:', type(e))
+    # not much else we can do here except to skip this attempt and try again later
+    print('Error:', sys.exc_info()[0])
+    print('Unable to initialize Google Calendar API')
     # make all the LEDs red
     set_all(FAILURE_COLOR)
+    time.sleep(5)
     # then exit, nothing else we can do, right?
     sys.exit(0)
 
-print('\nApplication initialized\n')
+print('Application initialized\n')
 
 # Now see what we're supposed to do next
 if __name__ == '__main__':

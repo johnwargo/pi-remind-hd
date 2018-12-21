@@ -134,7 +134,7 @@ Reminders are triggered for canceled events. If you have your Google Calendar co
 
 ## Revision History
 
-Nothing Yet!
+2018-12-18: Added automatic reboot configuration options when the `remind` app can't connect to the network. I noticed that when I lose power, the Pi can't reconnect to the network. So I decided to add an option to reboot the device after a certain number of minutes.
 
 ***
 
