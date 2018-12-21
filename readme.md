@@ -132,10 +132,6 @@ Reboot the Raspberry Pi; when it restarts, the python remind process should exec
 
 Reminders are triggered for canceled events. If you have your Google Calendar configured to show deleted events, `pi_remind` will flash its lights for those events as well. I've tried setting `showDeleted` to `false` in the API call to get the calendar entry list from Google, but it does not seem to have an effect (in my testing anyway).
 
-## Revision History
-
-2018-12-18: Added automatic reboot configuration options when the `remind` app can't connect to the network. I noticed that when I lose power, the Pi can't reconnect to the network. So I decided to add an option to reboot the device after a certain number of minutes.
-
 ***
 
 You can find information on many different topics on my [personal blog](http://www.johnwargo.com). Learn about all of my publications at [John Wargo Books](http://www.johnwargobooks.com). 
