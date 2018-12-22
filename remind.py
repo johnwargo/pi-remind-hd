@@ -23,14 +23,14 @@ import socket
 import sys
 import time
 
-import httplib2
-import oauth2client
 import pytz
 import unicornhathd
-from apiclient import discovery
 from dateutil import parser
-from oauth2client import client
-from oauth2client import tools
+from googleapiclient.discovery import build
+# import httplib2
+# import oauth2client
+from httplib2 import Http
+from oauth2client import client, file, tools
 
 try:
     import argparse
@@ -58,7 +58,6 @@ FONT = ("/usr/share/fonts/truetype/freefont/FreeSansBold.ttf", 12)
 SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Pi Reminder'
-CALENDAR_ID = 'primary'
 HASH = '#'
 HASHES = '#############################################'
 
@@ -230,32 +229,6 @@ def flash_random(flash_count, delay, between_delay=0):
             time.sleep(between_delay)
 
 
-def get_credentials():
-    # 'borrowed' from https://developers.google.com/google-apps/calendar/quickstart/python
-    global credentials
-    # get the user's home folder
-    home_dir = os.path.expanduser('~')
-    # build the file path pointing to where we'll store the Google API credentials
-    credential_dir = os.path.join(home_dir, '.credentials')
-    # create the directory path if it doesn't exist
-    if not os.path.exists(credential_dir):
-        print('Creating', credential_dir)
-        os.makedirs(credential_dir)
-    # now create a file path for the Google API credentials file
-    credential_path = os.path.join(credential_dir, 'pi_remind.json')
-    store = oauth2client.file.Storage(credential_path)
-    credentials = store.get()
-    if not credentials or credentials.invalid:
-        flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
-        flow.user_agent = APPLICATION_NAME
-        if flags:
-            credentials = tools.run_flow(flow, store, flags)
-        else:  # Needed only for compatibility with Python 2.6
-            credentials = tools.run(flow, store)
-        print('Storing credentials to', credential_path)
-    return credentials
-
-
 def has_reminder(event):
     # Return true if there's a reminder set for the event
     # First, check to see if there is a default reminder set
@@ -294,7 +267,8 @@ def get_next_event(search_limit):
         # ask Google for the calendar entries
         events_result = service.events().list(
             # get all of them between now and 10 minutes from now
-            calendarId=CALENDAR_ID,
+            # calendarId=CALENDAR_ID,
+            calendarId='primary',
             timeMin=now.isoformat() + 'Z',
             timeMax=then.isoformat() + 'Z',
             singleEvents=True,
@@ -306,7 +280,7 @@ def get_next_event(search_limit):
         # initialize this here, setting it to true later if we encounter an error
         has_error = False
         # reset the reboot counter, since everything worked so far
-        reboot_counter = 0;
+        reboot_counter = 0
         # did we get a return value?
         if not event_list:
             # no? Then no upcoming events at all, so nothing to do right now
@@ -426,17 +400,36 @@ def main():
         time.sleep(1)
 
 
-# now tell the user what we're doing...
+# def get_credentials():
+#     # get the user's home folder
+#     home_dir = os.path.expanduser('~')
+#     # build the file path pointing to where we'll store the Google API credentials
+#     credential_dir = os.path.join(home_dir, '.credentials')
+#     # create the directory path if it doesn't exist
+#     if not os.path.exists(credential_dir):
+#         print('Creating', credential_dir)
+#         os.makedirs(credential_dir)
+#     # now create a file path for the Google API credentials file
+#     credential_path = os.path.join(credential_dir, 'pi_remind.json')
+#     store = oauth2client.file.Storage(credential_path)
+#     credentials = store.get()
+#     if not credentials or credentials.invalid:
+#         flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
+#         flow.user_agent = APPLICATION_NAME
+#         if flags:
+#             credentials = tools.run_flow(flow, store, flags)
+#         else:  # Needed only for compatibility with Python 2.6
+#             credentials = tools.run(flow, store)
+#         print('Storing credentials to', credential_path)
+#     return credentials
+
+# tell the user what we're doing...
 print('\n')
 print(HASHES)
 print(HASH, 'Pi Remind (HD)                           ', HASH)
 print(HASH, 'https://github.com/johnwargo/pi-remind-hd', HASH)
 print(HASH, 'By John M. Wargo (www.johnwargo.com)     ', HASH)
 print(HASHES)
-
-# output whether reboot mode is enabled
-if REBOOT_COUNTER_ENABLED:
-    print('Reboot enabled ({} retries)'.format(REBOOT_NUM_RETRIES))
 
 # Clear the display (just in case)
 unicornhathd.clear()
@@ -458,18 +451,34 @@ current_activity_light = u_width
 # Comment out the line below to see what the default looks like.
 unicornhathd.brightness(0.5)
 
-# flash some random LEDs just for fun...
-flash_random(5, 0.5)
-# blink all the LEDs GREEN to let the user know the hardware is working
-flash_all(3, 0.10, GREEN)
+# output whether reboot mode is enabled
+if REBOOT_COUNTER_ENABLED:
+    print('Reboot enabled ({} retries)'.format(REBOOT_NUM_RETRIES))
 
 try:
     # Initialize the Google Calendar API stuff
     print('Initializing the Google Calendar API')
     socket.setdefaulttimeout(10)  # 10 seconds
-    credentials = get_credentials()
-    http = credentials.authorize(httplib2.Http())
-    service = discovery.build('calendar', 'v3', http=http)
+
+    # REMOVED when I changed the Google API implementation
+    # credentials = get_credentials()
+    # http = credentials.authorize(httplib2.Http())
+    # service = discovery.build('calendar', 'v3', http=http)
+
+    # The file token.json stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+
+    # store = file.Storage('token.json')
+    current_path = os.path.dirname(__file__)
+    credential_file = os.path.join(current_path, 'token.json')
+    print('Credential path: {}'.format(credential_file))
+    store = file.Storage(credential_file)
+    creds = store.get()
+    if not creds or creds.invalid:
+        flow = client.flow_from_clientsecrets(os.path.join(current_path, 'client_secret.json'), SCOPES)
+        creds = tools.run_flow(flow, store)
+    service = build('calendar', 'v3', http=creds.authorize(Http()))
 except Exception as e:
     print('\nException type:', type(e))
     # not much else we can do here except to skip this attempt and try again later
@@ -478,8 +487,16 @@ except Exception as e:
     # make all the LEDs red
     set_all(FAILURE_COLOR)
     time.sleep(5)
+    # turn off all of the LEDs
+    unicornhathd.off()
     # then exit, nothing else we can do, right?
     sys.exit(0)
+
+
+# flash some random LEDs just for fun...
+flash_random(5, 0.5)
+# blink all the LEDs GREEN to let the user know the hardware is working
+flash_all(3, 0.10, GREEN)
 
 print('Application initialized\n')
 
