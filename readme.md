@@ -75,12 +75,16 @@ When the Pi is all ready to go, open a terminal window and update the device's s
 	sudo apt-get update
 	sudo apt-get upgrade
 
+> Note: More recent versions of the Raspbian OS automatically check for updates on first launch, so the previous step is probably no longer necessary. If you're using a Pi that's been running for a while, it's always best to install all updates when you get a chance. 
+
 The first command updates the local software repositories and the second command updates the Pi's Raspbian OS and associated files.
 
-Next, install the [Google Calendar API Python files](https://developers.google.com/api-client-library/python/start/installation) along with date handling libraries using the following command:
+Next, install the [Google Calendar API Python files](https://developers.google.com/api-client-library/python/start/installation) along with some date handling libraries using the following command:
 
     sudo pip install --upgrade google-api-python-client oauth2client python-dateutil pytz    
 
+> Note: I'm not sure right now whether you need to install those Python libraries using `sudo`. I'm testing this on my local Pi and will update this doc again when I know better.
+ 
 Install the Unicorn HAT libraries following the instructions on the [Pimoroni web site](https://github.com/pimoroni/unicorn-hat-hd). Basically, open a terminal window and execute the following command:
 
     curl -sS get.pimoroni.com/unicornhathd | bash
@@ -119,7 +123,7 @@ There are a few steps you must complete to configure the Raspberry Pi so it exec
 If you don't already have a terminal window open, open one, then navigate to the folder where you extracted the project files (if you followed my earlier instructions, you should have the files in `/home/pi/pi-remind-hd/`). Make the project's bash script files executable by executing the following command:
 
     chmod +x start-remind.sh
-    
+
 Next, you'll need to open the pi user's session autostart file using the following command:  
 
 	sudo nano ~/.config/lxsession/LXDE-pi/autostart    
@@ -129,7 +133,7 @@ Add the following lines to the end (bottom) of the file:
 	@lxterminal -e /home/pi/pi-remind-hd/start-remind.sh
 
 To save your changes, press `ctrl-o` then press the Enter key. Next, press `ctrl-x` to exit the `nano` application.
-  
+
 Reboot the Raspberry Pi; when it restarts, the python remind process should execute in its own terminal window.
 
 ## Known Issues
@@ -139,4 +143,4 @@ Reminders are triggered for canceled events. If you have your Google Calendar co
 ***
 
 If you find this code useful, and feel like thanking me for providing it, please consider making a purchase from [my Amazon Wish List](https://amzn.com/w/1WI6AAUKPT5P9). You can find information on many different topics on my [personal blog](http://www.johnwargo.com). Learn about all of my publications at [John Wargo Books](http://www.johnwargobooks.com). 
-            
+​            
