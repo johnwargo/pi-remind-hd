@@ -1,5 +1,11 @@
 # Changelog
 
+## 2018-12-30
+
+As I made the changes in the previous release, I noticed that Google changed the way that the Python library initialized and authenticated with Google. The difference was slight, but the 'new' approach made more sense for my implementation of this, so I adjusted my program to use the new approach. Previously the code made a special folder for the API token it gets from Google on first setup, but the new approach just plunked the token file in the folder where the app runs (that made more sense to me). 
+
+The original project also installed Python libraries using `sudo` which isn't necessary. The python app executed using `sudo` as well, but that created some access problems I didn't want to have, so I reworked everything so it doesn't need `sudo` anywhere. That meant a slight change to the shell script that launches `remind.py`.  
+
 ## 2018-12-22
 
 Updated the Google Calendar API implementation - When I made the previous update, I noticed that the Google Calendar API getting started page had examples of a newer, cleaner approach to using the API. so, I decided to implement it. 
