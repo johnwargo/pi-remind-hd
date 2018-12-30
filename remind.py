@@ -29,9 +29,6 @@ from googleapiclient.discovery import build
 from httplib2 import Http
 from oauth2client import client, file, tools
 
-# import httplib2
-# import oauth2client
-
 try:
     import argparse
 
@@ -248,6 +245,7 @@ def get_next_event(search_limit):
     print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'Getting next event')
     # this 'now' is in a different format (UTC)
     now = datetime.datetime.utcnow()
+    # Calculate a time search_limit from now
     then = now + datetime.timedelta(minutes=search_limit)
     # if we don't have an error from the previous attempt, then change the LED color
     # otherwise leave it alone (it should already be red, so it will stay that way).
@@ -391,7 +389,7 @@ def calendar_loop():
 
 def main():
     #  used to setup our status indicator at the bottom of the led array
-    global current_activity_light, indicator_row, u_height, u_width
+    global current_activity_light, indicator_row, service, u_height, u_width
 
     # tell the user what we're doing...
     print('\n')
@@ -428,17 +426,19 @@ def main():
     try:
         # Initialize the Google Calendar API stuff
         print('Initializing the Google Calendar API')
-        socket.setdefaulttimeout(10)  # 10 seconds
-
         # Google says: If modifying these scopes, delete your previously saved credentials at ~/.credentials/client_secret.json
         # On the pi, it's in /root/.credentials/
         SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
-        store = file.Storage('token.json')
+        store = file.Storage('google_api_token.json')
         creds = store.get()
         if not creds or creds.invalid:
             flow = client.flow_from_clientsecrets('client_secret.json', SCOPES)
             creds = tools.run_flow(flow, store)
         service = build('calendar', 'v3', http=creds.authorize(Http()))
+
+        # Set the timeout for the rest of the Google API calls.
+        # need this at its default (infinity, i think) during the registration process.
+        socket.setdefaulttimeout(10)  # 10 seconds
     except Exception as e:
         print('\nException type:', type(e))
         # not much else we can do here except to skip this attempt and try again later
