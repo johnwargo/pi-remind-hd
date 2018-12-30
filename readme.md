@@ -42,7 +42,7 @@ For this project, I used the following components:
 
 Before you start, you must setup an account with Google so the app can consume the Google Calendar APIs used by the project. To setup your account, read the [Google Calendar API Python Quickstart](https://developers.google.com/google-apps/calendar/quickstart/python).
 
-At the conclusion of the Google account setup process, download your Google Calendar API application's `client_secret.json` file, you'll need to copy the file to the Pi Reminder project folder later.. Be sure to name the downloaded file using that file name. The project's code uses this file to authorize access your Google Calendar and that file name is hard coded into the project's Python app.
+At the conclusion of the Google account setup process, download your Google Calendar API application's `client_secret.json` file, you'll need to copy the file to the Pi Reminder project folder later.. Be sure to name the downloaded file using that file name. The project's code uses this file to authorize access your Google Calendar and that file name is hard coded into the project's Python app. The file will contain a big random number in its file name, just rename it to `client_secret.json`.
 
 ## Raspberry Pi Setup
 
@@ -81,9 +81,15 @@ The first command updates the local software repositories and the second command
 
 Next, install the [Google Calendar API Python files](https://developers.google.com/api-client-library/python/start/installation) along with some date handling libraries using the following command:
 
+<<<<<<< HEAD
     sudo pip install --upgrade google-api-python-client oauth2client python-dateutil pytz    
 
 > Note: I'm not sure right now whether you need to install those Python libraries using `sudo`. I'm testing this on my local Pi and will update this doc again when I know better.
+=======
+    pip install --upgrade google-api-python-client oauth2client python-dateutil pytz    
+
+> Note: The original version of this project used `sudo` to install Python libraries, but that's no longer necessary.
+>>>>>>> modernize-google-api
  
 Install the Unicorn HAT libraries following the instructions on the [Pimoroni web site](https://github.com/pimoroni/unicorn-hat-hd). Basically, open a terminal window and execute the following command:
 
@@ -97,40 +103,44 @@ Next, download the project's code; in the same terminal window, execute the foll
 
 If all goes well, you should see the following files in the folder:
 
+- `screenshots` (folder)
+- `changelog.md`
 - `LICENSE`
 - `readme.md` (this file)
 - `remind.py`
 - `start-remind.sh`
 
-Copy your personal `client_secret.json` file (downloaded when you created your Google account) to the `pi-remind-hd` folder you just created. With everything in place, execute the reminder app using the following command:
+> Note: You only need the `remind.py` and `start-remind.sh` files to run this project on the Raspberry Pi; the remaining files are just documentation.  If you want to, you can delete the other files and the one folder to free up space on your Pi.
 
-    sudo python ./remind.py
+Copy your personal Google Calendar project's `client_secret.json` file (downloaded when you created your Google account) to the `pi-remind-hd` folder you just created. With everything in place, execute the reminder app using the following command:
+
+    python ./remind.py
 
 Before the app can access the calendar, you'll need to authorize the app to use the Google Calendar API for your calendar account. When you launch the app for the first time (using the command shown above) the browser will launch and walk you through the process. With that complete, PI Remind should start watching your calendar for events.
-
-Note: if you ever change Google calendars (from a work to a personal calendar or from one work calendar profile to another) you'll need to whack the existing access token created during the initial startup or the Pi Reminder app. Instructions for deleting this token are available on [johnwargo.com](https://johnwargo.com/internet-of-things-iot/pi-reminder-%E2%80%93-delete-google-calendar-access-authorization-token.html).
 
 ## Starting The Project Application Automatically
 
 There are a few steps you must complete to configure the Raspberry Pi so it executes the the reminder app on startup. You can read more about this here: [Autostart Python App on Raspberry Pi in a Terminal Window](http://johnwargo.com/index.php/microcontrollers-single-board-computers/autostart-python-app-on-raspberry-pi-in-a-terminal-window.html).
 
-***Note:** Don't forget to authorize the Google Calendar API to access your Google Calendar by running the manual startup process described in the previous session before enabling autostart.* 
+>**Note:** Don't forget to authorize the Google Calendar API to access your Google Calendar by running the manual startup process described in the previous session before enabling autostart. 
 
 If you don't already have a terminal window open, open one, then navigate to the folder where you extracted the project files (if you followed my earlier instructions, you should have the files in `/home/pi/pi-remind-hd/`). Make the project's bash script files executable by executing the following command:
 
     chmod +x start-remind.sh
-    
-Next, you'll need to open the pi user's session autostart file using the following command:  
 
-	sudo nano ~/.config/lxsession/LXDE-pi/autostart    
+Next, you'll need to open the pi's `autostart` file using the following command:  
 
+    sudo nano /etc/xdg/lxsession/LXDE-pi/autostart
+	
 Add the following lines to the end (bottom) of the file:
 
 	@lxterminal -e /home/pi/pi-remind-hd/start-remind.sh
 
 To save your changes, press `ctrl-o` then press the Enter key. Next, press `ctrl-x` to exit the `nano` application.
-  
-Reboot the Raspberry Pi; when it restarts, the python remind process should execute in its own terminal window.
+
+Reboot the Raspberry Pi; when it restarts, the python remind process should launch and execute in its own terminal window. 
+
+> **Note**: Because of the way we're starting this terminal process on startup, every time a user logs into the Pi, it will launch a terminal window for that user and run the `remind.py` script. This shouldn't matter when you're running the pi headless (with no monitor and keyboard), but when you remote into the Pi (using something like Windows Remote Desktop), your remote session will get its own version of the Remind application. In the initial version of this project, I included instructions to edit the user's `autostart` file: `sudo nano ~/.config/lxsession/LXDE-pi/autostart` but that file no longer exists on current versions of the Raspbian OS.
 
 ## Known Issues
 
@@ -139,4 +149,4 @@ Reminders are triggered for canceled events. If you have your Google Calendar co
 ***
 
 If you find this code useful, and feel like thanking me for providing it, please consider making a purchase from [my Amazon Wish List](https://amzn.com/w/1WI6AAUKPT5P9). You can find information on many different topics on my [personal blog](http://www.johnwargo.com). Learn about all of my publications at [John Wargo Books](http://www.johnwargobooks.com). 
-            
+​            

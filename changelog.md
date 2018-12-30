@@ -1,5 +1,9 @@
 # Changelog
 
+## 2018-12-22
+
+Updated the Google Calendar API implementation - When I made the previous update, I noticed that the Google Calendar API getting started page had examples of a newer, cleaner approach to using the API. so, I decided to implement it. 
+
 ## 2018-12-21
 
 - Added a reboot timer to `remind.py`. I noticed that when I lost power in the house, the PI would come up before my network did, and never reconnect. So, when you set `REBOOT_COUNTER_ENABLED` to `True` and specify a reboot counter in `REBOOT_NUM_RETRIES` (it defaults to 10), the app will count how many times the API fails to connect, then reboots the Pi.

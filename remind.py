@@ -12,7 +12,6 @@
     Google Calendar example code: https://developers.google.com/google-apps/calendar/quickstart/python
 ********************************************************************************************************************'''
 # todo: Add configurable option for ignoring tentative appointments
-# todo: Store number of LEDs in a row as a parameter and adjust routines accordingly.
 
 from __future__ import print_function
 
@@ -23,14 +22,12 @@ import socket
 import sys
 import time
 
-import httplib2
-import oauth2client
 import pytz
 import unicornhathd
-from apiclient import discovery
 from dateutil import parser
-from oauth2client import client
-from oauth2client import tools
+from googleapiclient.discovery import build
+from httplib2 import Http
+from oauth2client import client, file, tools
 
 try:
     import argparse
@@ -53,12 +50,7 @@ except ImportError:
 FONT = ("/usr/share/fonts/truetype/freefont/FreeSansBold.ttf", 12)
 # =============================================================================
 
-# Google says: If modifying these scopes, delete your previously saved credentials at ~/.credentials/client_secret.json
-# On the pi, it's in /root/.credentials/
-SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
-CLIENT_SECRET_FILE = 'client_secret.json'
-APPLICATION_NAME = 'Pi Reminder'
-CALENDAR_ID = 'primary'
+# APPLICATION_NAME = 'Pi Reminder'
 HASH = '#'
 HASHES = '#############################################'
 
@@ -97,8 +89,6 @@ has_error = False
 
 
 def display_text(message, color=WHITE):
-    global u_width
-
     # do we have a message?
     if len(message) > 0:
         # then display it
@@ -172,7 +162,6 @@ def do_swirl(duration):
 
 
 def set_activity_light(color, increment):
-    global indicator_row
     # used to turn on one LED at a time across the bottom row of lights. The app uses this as an unobtrusive
     # indicator when it connects to Google to check the calendar. Its intended as a subtle reminder that things
     # are still working.
@@ -230,32 +219,6 @@ def flash_random(flash_count, delay, between_delay=0):
             time.sleep(between_delay)
 
 
-def get_credentials():
-    # 'borrowed' from https://developers.google.com/google-apps/calendar/quickstart/python
-    global credentials
-    # get the user's home folder
-    home_dir = os.path.expanduser('~')
-    # build the file path pointing to where we'll store the Google API credentials
-    credential_dir = os.path.join(home_dir, '.credentials')
-    # create the directory path if it doesn't exist
-    if not os.path.exists(credential_dir):
-        print('Creating', credential_dir)
-        os.makedirs(credential_dir)
-    # now create a file path for the Google API credentials file
-    credential_path = os.path.join(credential_dir, 'pi_remind.json')
-    store = oauth2client.file.Storage(credential_path)
-    credentials = store.get()
-    if not credentials or credentials.invalid:
-        flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
-        flow.user_agent = APPLICATION_NAME
-        if flags:
-            credentials = tools.run_flow(flow, store, flags)
-        else:  # Needed only for compatibility with Python 2.6
-            credentials = tools.run(flow, store)
-        print('Storing credentials to', credential_path)
-    return credentials
-
-
 def has_reminder(event):
     # Return true if there's a reminder set for the event
     # First, check to see if there is a default reminder set
@@ -276,14 +239,13 @@ def has_reminder(event):
 
 
 def get_next_event(search_limit):
-    global has_error
-    global reboot_counter
-
+    global has_error, reboot_counter
     # modified from https://developers.google.com/google-apps/calendar/quickstart/python
     # get all of the events on the calendar from now through 10 minutes from now
     print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'Getting next event')
     # this 'now' is in a different format (UTC)
     now = datetime.datetime.utcnow()
+    # Calculate a time search_limit from now
     then = now + datetime.timedelta(minutes=search_limit)
     # if we don't have an error from the previous attempt, then change the LED color
     # otherwise leave it alone (it should already be red, so it will stay that way).
@@ -294,7 +256,8 @@ def get_next_event(search_limit):
         # ask Google for the calendar entries
         events_result = service.events().list(
             # get all of them between now and 10 minutes from now
-            calendarId=CALENDAR_ID,
+            # calendarId=CALENDAR_ID,
+            calendarId='primary',
             timeMin=now.isoformat() + 'Z',
             timeMax=then.isoformat() + 'Z',
             singleEvents=True,
@@ -306,7 +269,7 @@ def get_next_event(search_limit):
         # initialize this here, setting it to true later if we encounter an error
         has_error = False
         # reset the reboot counter, since everything worked so far
-        reboot_counter = 0;
+        reboot_counter = 0
         # did we get a return value?
         if not event_list:
             # no? Then no upcoming events at all, so nothing to do right now
@@ -368,7 +331,7 @@ def get_next_event(search_limit):
     return None
 
 
-def main():
+def calendar_loop():
     # initialize the lastMinute variable to the current time to start
     last_minute = datetime.datetime.now().minute
     # on startup, just use the previous minute as lastMinute, that way the app
@@ -377,7 +340,6 @@ def main():
         last_minute = 59
     else:
         last_minute -= 1
-
     # infinite loop to continuously check Google Calendar for future entries
     while 1:
         # get the current minute
@@ -420,70 +382,87 @@ def main():
                     display_text(next_event['summary'], ORANGE)
                     # set the activity light to SUCCESS_COLOR (green by default)
                     set_activity_light(ORANGE, False)
-
         # wait a second then check again
         # You can always increase the sleep value below to check less often
         time.sleep(1)
 
 
-# now tell the user what we're doing...
-print('\n')
-print(HASHES)
-print(HASH, 'Pi Remind (HD)                           ', HASH)
-print(HASH, 'https://github.com/johnwargo/pi-remind-hd', HASH)
-print(HASH, 'By John M. Wargo (www.johnwargo.com)     ', HASH)
-print(HASHES)
+def main():
+    #  used to setup our status indicator at the bottom of the led array
+    global current_activity_light, indicator_row, service, u_height, u_width
 
-# output whether reboot mode is enabled
-if REBOOT_COUNTER_ENABLED:
-    print('Reboot enabled ({} retries)'.format(REBOOT_NUM_RETRIES))
+    # tell the user what we're doing...
+    print('\n')
+    print(HASHES)
+    print(HASH, 'Pi Remind (HD)                           ', HASH)
+    print(HASH, 'https://github.com/johnwargo/pi-remind-hd', HASH)
+    print(HASH, 'By John M. Wargo (www.johnwargo.com)     ', HASH)
+    print(HASHES)
 
-# Clear the display (just in case)
-unicornhathd.clear()
-# Initialize  all LEDs to black
-unicornhathd.set_all(0, 0, 0)
-# set the display orientation to zero degrees
-unicornhathd.rotation(90)
-# set u_width and u_height with the appropriate parameters for the HAT
-u_width, u_height = unicornhathd.get_shape()
-# calculate where we want to put the indicator light
-indicator_row = u_height - 1
+    # Clear the display (just in case)
+    unicornhathd.clear()
+    # Initialize  all LEDs to black
+    unicornhathd.set_all(0, 0, 0)
+    # set the display orientation to zero degrees
+    unicornhathd.rotation(90)
+    # set u_width and u_height with the appropriate parameters for the HAT
+    u_width, u_height = unicornhathd.get_shape()
+    # calculate where we want to put the indicator light
+    indicator_row = u_height - 1
 
-# The app flashes a GREEN light in the first row every time it connects to Google to check the calendar.
-# The LED increments every time until it gets to the other side then starts over at the beginning again.
-# The current_activity_light variable keeps track of which light lit last. At start it's at -1 and goes from there.
-current_activity_light = u_width
+    # The app flashes a GREEN light in the first row every time it connects to Google to check the calendar.
+    # The LED increments every time until it gets to the other side then starts over at the beginning again.
+    # The current_activity_light variable keeps track of which light lit last. At start it's at -1 and goes from there.
+    current_activity_light = u_width
 
-# Set a specific brightness level for the Pimoroni Unicorn HAT, otherwise it's pretty bright.
-# Comment out the line below to see what the default looks like.
-unicornhathd.brightness(0.5)
+    # Set a specific brightness level for the Pimoroni Unicorn HAT, otherwise it's pretty bright.
+    # Comment out the line below to see what the default looks like.
+    unicornhathd.brightness(0.5)
 
-# flash some random LEDs just for fun...
-flash_random(5, 0.5)
-# blink all the LEDs GREEN to let the user know the hardware is working
-flash_all(3, 0.10, GREEN)
+    # output whether reboot mode is enabled
+    if REBOOT_COUNTER_ENABLED:
+        print('Reboot enabled ({} retries)'.format(REBOOT_NUM_RETRIES))
 
-try:
-    # Initialize the Google Calendar API stuff
-    print('Initializing the Google Calendar API')
-    socket.setdefaulttimeout(10)  # 10 seconds
-    credentials = get_credentials()
-    http = credentials.authorize(httplib2.Http())
-    service = discovery.build('calendar', 'v3', http=http)
-except Exception as e:
-    print('\nException type:', type(e))
-    # not much else we can do here except to skip this attempt and try again later
-    print('Error:', sys.exc_info()[0])
-    print('Unable to initialize Google Calendar API')
-    # make all the LEDs red
-    set_all(FAILURE_COLOR)
-    time.sleep(5)
-    # then exit, nothing else we can do, right?
-    sys.exit(0)
+    try:
+        # Initialize the Google Calendar API stuff
+        print('Initializing the Google Calendar API')
+        # Google says: If modifying these scopes, delete your previously saved credentials at ~/.credentials/client_secret.json
+        # On the pi, it's in /root/.credentials/
+        SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
+        store = file.Storage('google_api_token.json')
+        creds = store.get()
+        if not creds or creds.invalid:
+            flow = client.flow_from_clientsecrets('client_secret.json', SCOPES)
+            creds = tools.run_flow(flow, store)
+        service = build('calendar', 'v3', http=creds.authorize(Http()))
 
-print('Application initialized\n')
+        # Set the timeout for the rest of the Google API calls.
+        # need this at its default (infinity, i think) during the registration process.
+        socket.setdefaulttimeout(10)  # 10 seconds
+    except Exception as e:
+        print('\nException type:', type(e))
+        # not much else we can do here except to skip this attempt and try again later
+        print('Error:', sys.exc_info()[0])
+        print('Unable to initialize Google Calendar API')
+        # make all the LEDs red
+        set_all(FAILURE_COLOR)
+        #  Wait 5 seconds (so the user can see the error color on the display)
+        time.sleep(5)
+        # turn off all of the LEDs
+        unicornhathd.off()
+        # then exit, nothing else we can do here, right?
+        sys.exit(0)
 
-# Now see what we're supposed to do next
+    print('Application initialized\n')
+
+    # flash some random LEDs just for fun...
+    flash_random(5, 0.5)
+    # blink all the LEDs GREEN to let the user know the hardware is working
+    flash_all(3, 0.10, GREEN)
+
+    calendar_loop()
+
+
 if __name__ == '__main__':
     try:
         # do our stuff
