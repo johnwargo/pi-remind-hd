@@ -81,15 +81,9 @@ The first command updates the local software repositories and the second command
 
 Next, install the [Google Calendar API Python files](https://developers.google.com/api-client-library/python/start/installation) along with some date handling libraries using the following command:
 
-<<<<<<< HEAD
-    sudo pip install --upgrade google-api-python-client oauth2client python-dateutil pytz    
-
-> Note: I'm not sure right now whether you need to install those Python libraries using `sudo`. I'm testing this on my local Pi and will update this doc again when I know better.
-=======
     pip install --upgrade google-api-python-client oauth2client python-dateutil pytz    
 
 > Note: The original version of this project used `sudo` to install Python libraries, but that's no longer necessary.
->>>>>>> modernize-google-api
  
 Install the Unicorn HAT libraries following the instructions on the [Pimoroni web site](https://github.com/pimoroni/unicorn-hat-hd). Basically, open a terminal window and execute the following command:
 
