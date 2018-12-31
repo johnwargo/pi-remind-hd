@@ -118,9 +118,9 @@ There are a few steps you must complete to configure the Raspberry Pi so it exec
 
 >**Note:** Don't forget to authorize the Google Calendar API to access your Google Calendar by running the manual startup process described in the previous session before enabling autostart. 
 
-If you don't already have a terminal window open, open one, then navigate to the folder where you extracted the project files (if you followed my earlier instructions, you should have the files in `/home/pi/pi-remind-hd/`). Make the project's bash script files executable by executing the following command:
+If you don't already have a terminal window open, open one, then navigate to the folder where you extracted the project files (if you followed my earlier instructions, you should have the files in `/home/pi/pi-remind-hd/`). Make the project's bash script file executable by executing the following command:
 
-    chmod +x start-remind.sh
+    chmod +x ./start-remind.sh
 
 Next, you'll need to open the pi's `autostart` file using the following command:  
 
@@ -130,15 +130,19 @@ Add the following lines to the end (bottom) of the file:
 
 	@lxterminal -e /home/pi/pi-remind-hd/start-remind.sh
 
-To save your changes, press `ctrl-o` then press the Enter key. Next, press `ctrl-x` to exit the `nano` application.
+To save your changes, press **Ctrl-o** then press the Enter key. Next, press **Ctrl-x** to exit the `nano` application.
 
 Reboot the Raspberry Pi; when it restarts, the python remind process should launch and execute in its own terminal window. 
 
 > **Note**: Because of the way we're starting this terminal process on startup, every time a user logs into the Pi, it will launch a terminal window for that user and run the `remind.py` script. This shouldn't matter when you're running the pi headless (with no monitor and keyboard), but when you remote into the Pi (using something like Windows Remote Desktop), your remote session will get its own version of the Remind application. In the initial version of this project, I included instructions to edit the user's `autostart` file: `sudo nano ~/.config/lxsession/LXDE-pi/autostart` but that file no longer exists on current versions of the Raspbian OS.
 
+## Revisions & Updates
+
+See the [Changelog](changelog.md).
+
 ## Known Issues
 
-Reminders are triggered for canceled events. If you have your Google Calendar configured to show deleted events, `pi_remind` will flash its lights for those events as well. I've tried setting `showDeleted` to `false` in the API call to get the calendar entry list from Google, but it does not seem to have an effect (in my testing anyway).
++ Reminders are triggered for canceled events. If you have your Google Calendar configured to show deleted events, `pi_remind` will flash its lights for those events as well. I've tried setting `showDeleted` to `false` in the API call that gets the calendar entry list from Google, but it does not seem to have an effect (in my testing anyway).
 
 ***
 

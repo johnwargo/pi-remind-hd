@@ -50,10 +50,12 @@ except ImportError:
 FONT = ("/usr/share/fonts/truetype/freefont/FreeSansBold.ttf", 12)
 # =============================================================================
 
-# APPLICATION_NAME = 'Pi Reminder'
 HASH = '#'
 HASHES = '#############################################'
 
+# Event search scope (searches this many minutes in the future for events). Increase this value to get reminders
+# earlier. The app displays WHITE lights from this limit up to FIRST_THRESHOLD
+SEARCH_LIMIT = 10  # minutes
 # Reminder thresholds
 FIRST_THRESHOLD = 5  # minutes, WHITE lights before this
 # RED for anything less than (and including) the second threshold
@@ -238,15 +240,16 @@ def has_reminder(event):
     return False
 
 
-def get_next_event(search_limit):
+def get_next_event():
     global has_error, reboot_counter
+
     # modified from https://developers.google.com/google-apps/calendar/quickstart/python
     # get all of the events on the calendar from now through 10 minutes from now
     print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'Getting next event')
     # this 'now' is in a different format (UTC)
     now = datetime.datetime.utcnow()
     # Calculate a time search_limit from now
-    then = now + datetime.timedelta(minutes=search_limit)
+    then = now + datetime.timedelta(minutes=SEARCH_LIMIT)
     # if we don't have an error from the previous attempt, then change the LED color
     # otherwise leave it alone (it should already be red, so it will stay that way).
     if not has_error:
@@ -256,7 +259,6 @@ def get_next_event(search_limit):
         # ask Google for the calendar entries
         events_result = service.events().list(
             # get all of them between now and 10 minutes from now
-            # calendarId=CALENDAR_ID,
             calendarId='primary',
             timeMin=now.isoformat() + 'Z',
             timeMax=then.isoformat() + 'Z',
@@ -350,7 +352,7 @@ def calendar_loop():
             last_minute = current_minute
             # we've moved a minute, so we have work to do
             # get the next calendar event (within the specified time limit [in minutes])
-            next_event = get_next_event(10)
+            next_event = get_next_event()
             # do we get an event?
             if next_event is not None:
                 num_minutes = next_event['num_minutes']
