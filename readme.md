@@ -33,10 +33,10 @@ This way, even if you miss the flashing lights, you can glance at the display an
 
 For this project, I used the following components:
 
-+ [Raspberry Pi 3](https://www.raspberrypi.org/), but most any Pi will work. Check the Unicorn HAT documentation for supported Pi devices.
-+ [Pimoroni Unicorn HAT HD](https://shop.pimoroni.com/products/unicorn-hat-hd)
-+ [Adafruit Raspberry Pi B+ / Pi 2 / Pi 3 Case - Smoke Base - w/ Clear Top](https://www.adafruit.com/products/2258)
-+ [CanaKit 5V 2.5A Raspberry Pi 3 Power Supply / Adapter / Charger (UL Listed)](http://www.amazon.com/CanaKit-Raspberry-Supply-Adapter-Charger/dp/B00MARDJZ4) from Amazon
+* [Raspberry Pi 3](https://www.raspberrypi.org/), but most any Pi will work. Check the Unicorn HAT documentation for supported Pi devices.
+* [Pimoroni Unicorn HAT HD](https://shop.pimoroni.com/products/unicorn-hat-hd)
+* [Adafruit Raspberry Pi B+ / Pi 2 / Pi 3 Case - Smoke Base - w/ Clear Top](https://www.adafruit.com/products/2258)
+* [CanaKit 5V 2.5A Raspberry Pi 3 Power Supply / Adapter / Charger (UL Listed)](http://www.amazon.com/CanaKit-Raspberry-Supply-Adapter-Charger/dp/B00MARDJZ4) from Amazon
 
 ## Google Calendar API Setup
 
@@ -66,49 +66,55 @@ When the Pi boots up, log into the Pi using the default credentials (`pi`/`raspb
 
 ![Raspberry Pi Configuration Utility](screenshots/figure-02.png)
 
-Click the **OK** button to save your changes.  You should **not** have to reboot your Pi after completing this step. 
+Click the **OK** button to save your changes.  You should **not** have to reboot your Pi after completing this step.
 
 ### Software
 
 When the Pi is all ready to go, open a terminal window and update the device's software using the following commands:
 
-	sudo apt-get update
-	sudo apt-get upgrade
+```shell
+sudo apt-get update
+sudo apt-get upgrade
+```
 
-> Note: More recent versions of the Raspbian OS automatically check for updates on first launch, so the previous step is probably no longer necessary. If you're using a Pi that's been running for a while, it's always best to install all updates when you get a chance. 
+> Note: More recent versions of the Raspbian OS automatically check for updates on first launch, so the previous step is probably no longer necessary. If you're using a Pi that's been running for a while, it's always best to install all updates when you get a chance.
 
 The first command updates the local software repositories and the second command updates the Pi's Raspbian OS and associated files.
 
 Next, install the [Google Calendar API Python files](https://developers.google.com/api-client-library/python/start/installation) along with some date handling libraries using the following command:
 
-    pip install --upgrade google-api-python-client oauth2client python-dateutil pytz    
+    pip install --upgrade google-api-python-client oauth2client python-dateutil pytz
 
 > Note: The original version of this project used `sudo` to install Python libraries, but that's no longer necessary.
- 
+
 Install the Unicorn HAT libraries following the instructions on the [Pimoroni web site](https://github.com/pimoroni/unicorn-hat-hd). Basically, open a terminal window and execute the following command:
 
     curl -sS get.pimoroni.com/unicornhathd | bash
 
 Next, download the project's code; in the same terminal window, execute the following commands:
 
-	git clone https://github.com/johnwargo/pi-remind-hd
-	cd pi-remind-hd
-	ls
+```shell
+git clone https://github.com/johnwargo/pi-remind-hd
+cd pi-remind-hd
+ls
+```
 
 If all goes well, you should see the following files in the folder:
 
-- `screenshots` (folder)
-- `changelog.md`
-- `LICENSE`
-- `readme.md` (this file)
-- `remind.py`
-- `start-remind.sh`
+* `screenshots` (folder)
+* `changelog.md`
+* `LICENSE`
+* `readme.md` (this file)
+* `remind.py`
+* `start-remind.sh`
 
 > Note: You only need the `remind.py` and `start-remind.sh` files to run this project on the Raspberry Pi; the remaining files are just documentation.  If you want to, you can delete the other files and the one folder to free up space on your Pi.
 
 Copy your personal Google Calendar project's `client_secret.json` file (downloaded when you created your Google account) to the `pi-remind-hd` folder you just created. With everything in place, execute the reminder app using the following command:
 
-    python ./remind.py
+```shell
+python ./remind.py
+```
 
 Before the app can access the calendar, you'll need to authorize the app to use the Google Calendar API for your calendar account. When you launch the app for the first time (using the command shown above) the browser will launch and walk you through the process. With that complete, PI Remind should start watching your calendar for events.
 
@@ -120,15 +126,21 @@ There are a few steps you must complete to configure the Raspberry Pi so it exec
 
 If you don't already have a terminal window open, open one, then navigate to the folder where you extracted the project files (if you followed my earlier instructions, you should have the files in `/home/pi/pi-remind-hd/`). Make the project's bash script file executable by executing the following command:
 
-    chmod +x ./start-remind.sh
+```shell
+chmod +x ./start-remind.sh
+```
 
 Next, you'll need to open the pi's `autostart` file using the following command:  
 
-    sudo nano /etc/xdg/lxsession/LXDE-pi/autostart
-	
+```shell
+sudo nano /etc/xdg/lxsession/LXDE-pi/autostart
+```
+
 Add the following lines to the end (bottom) of the file:
 
-	@lxterminal -e /home/pi/pi-remind-hd/start-remind.sh
+```shell
+@lxterminal -e /home/pi/pi-remind-hd/start-remind.sh
+```
 
 To save your changes, press **Ctrl-o** then press the Enter key. Next, press **Ctrl-x** to exit the `nano` application.
 
@@ -146,5 +158,4 @@ See the [Changelog](changelog.md).
 
 ***
 
-If you find this code useful, and feel like thanking me for providing it, please consider making a purchase from [my Amazon Wish List](https://amzn.com/w/1WI6AAUKPT5P9). You can find information on many different topics on my [personal blog](http://www.johnwargo.com). Learn about all of my publications at [John Wargo Books](http://www.johnwargobooks.com). 
-​            
+If you find this code useful, and feel like thanking me for providing it, please consider making a purchase from [my Amazon Wish List](https://amzn.com/w/1WI6AAUKPT5P9). You can find information on many different topics on my [personal blog](http://www.johnwargo.com). Learn about all of my publications at [John Wargo Books](http://www.johnwargobooks.com).
