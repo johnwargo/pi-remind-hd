@@ -4,7 +4,7 @@ I often find myself missing appointments because I'm engrossed in my work or bec
 
 The project uses a network connected Raspberry Pi and a [Pimoroni Unicorn HAT HD](https://shop.pimoroni.com/products/unicorn-hat-hd) to flash the reminder. The project was originally built using the Pimoroni Unicorn HAT, and published in Make Magazine (makezine.com): [Get a Flashing Meeting Reminder with a Raspberry Pi](http://makezine.com/projects/get-a-flashing-meeting-reminder-with-a-raspberry-pi/). For this version, I upgraded the Unicorn HAT to the High Definition (HD) version which will allow me to display much cleaner and more interesting color patterns. The HD version of the Unicorn HAT has 256 LEDs vs the original Unicorn HAT's 64, for much higher pixel resolution.
 
-One of the things I wanted to do in the original project was display the meeting description/subject on the Unicorn HAT. I could have done it, but because of the low pixel resolution of the Unicorn HAT, it would have looked clunky. The Unicorn HAT HD has a higher pixel resolution, so I've added the feature here. 
+One of the things I wanted to do in the original project was display the meeting description/subject on the Unicorn HAT. I could have done it, but because of the low pixel resolution of the Unicorn HAT, it would have looked clunky. The Unicorn HAT HD has a higher pixel resolution, so I've added the feature here.
 
 ## Alerts
 
@@ -83,13 +83,17 @@ The first command updates the local software repositories and the second command
 
 Next, install the [Google Calendar API Python files](https://developers.google.com/api-client-library/python/start/installation) along with some date handling libraries using the following command:
 
-    pip install --upgrade google-api-python-client oauth2client python-dateutil pytz
+```shell
+pip install --upgrade google-api-python-client oauth2client python-dateutil pytz
+```
 
 > Note: The original version of this project used `sudo` to install Python libraries, but that's no longer necessary.
 
 Install the Unicorn HAT libraries following the instructions on the [Pimoroni web site](https://github.com/pimoroni/unicorn-hat-hd). Basically, open a terminal window and execute the following command:
 
-    curl -sS get.pimoroni.com/unicornhathd | bash
+```shell
+curl -sS get.pimoroni.com/unicornhathd | bash
+```
 
 Next, download the project's code; in the same terminal window, execute the following commands:
 
@@ -144,7 +148,7 @@ Add the following lines to the end (bottom) of the file:
 
 To save your changes, press **Ctrl-o** then press the Enter key. Next, press **Ctrl-x** to exit the `nano` application.
 
-Reboot the Raspberry Pi; when it restarts, the python remind process should launch and execute in its own terminal window. 
+Reboot the Raspberry Pi; when it restarts, the python remind process should launch and execute in its own terminal window.
 
 > **Note**: Because of the way we're starting this terminal process on startup, every time a user logs into the Pi, it will launch a terminal window for that user and run the `remind.py` script. This shouldn't matter when you're running the pi headless (with no monitor and keyboard), but when you remote into the Pi (using something like Windows Remote Desktop), your remote session will get its own version of the Remind application. In the initial version of this project, I included instructions to edit the user's `autostart` file: `sudo nano ~/.config/lxsession/LXDE-pi/autostart` but that file no longer exists on current versions of the Raspbian OS.
 
