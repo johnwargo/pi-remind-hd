@@ -1,5 +1,9 @@
 # Changelog
 
+## 2020-02-14
+
+Updated the readme to illustrate how to change the Google account profile used by the application. I should have made this change with the previous update, but apparently didn't.
+
 ## 2018-12-30
 
 As I made the changes in the previous release, I noticed that Google changed the way that the Python library initialized and authenticated with Google. The difference was slight, but the 'new' approach made more sense for my implementation of this, so I adjusted my program to use the new approach. Previously the code made a special folder for the API token it gets from Google on first setup, but the new approach just plunked the token file in the folder where the app runs (that made more sense to me). 

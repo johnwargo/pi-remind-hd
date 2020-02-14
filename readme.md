@@ -148,6 +148,18 @@ Reboot the Raspberry Pi; when it restarts, the python remind process should laun
 
 > **Note**: Because of the way we're starting this terminal process on startup, every time a user logs into the Pi, it will launch a terminal window for that user and run the `remind.py` script. This shouldn't matter when you're running the pi headless (with no monitor and keyboard), but when you remote into the Pi (using something like Windows Remote Desktop), your remote session will get its own version of the Remind application. In the initial version of this project, I included instructions to edit the user's `autostart` file: `sudo nano ~/.config/lxsession/LXDE-pi/autostart` but that file no longer exists on current versions of the Raspbian OS.
 
+## Changing the Google Profile
+
+If you need to change the Google profile used by the Remind app, complete the following steps:
+
+1. Login to your Raspberry Pi device
+2. In the terminal window running `remind.py`, press CTRL-C to stop the process
+3. Open the Pi's File Manager and navigate to the `pi-remind-hd` folder shown in the following figure
+4. Delete the `google-api-token.json` file
+5. Run the `remind.py` application using the instructions above to configure the new profile.
+
+![File Explorer](screenshots/figure-03.png)
+
 ## Revisions & Updates
 
 See the [Changelog](changelog.md).
